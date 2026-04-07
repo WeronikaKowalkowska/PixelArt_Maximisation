@@ -1,0 +1,52 @@
+Vilens based on Public Domain image by Surt https://opengameart.org/content/another-nes-like-village
+
+rot-test.png:
+  TV Copyright 2004 LucasVB CC BY-SA 3.0
+  https://commons.wikimedia.org/wiki/File:Pixelart-tv-iso.png
+
+  Spaceship by Kenney.nl 2016, in the Public Domain
+  https://opengameart.org/content/space-shooter-extension-250
+
+  King by Buch 2014, in the Public Domain
+  https://opengameart.org/content/a-platformer-in-the-forest
+
+  Skull Copyright Lunarsignals 2015, CC-BY-SA 3.0
+  https://opengameart.org/content/overhead-action-rpg-forest
+
+  Hat from Dungeons of Dredmor, Copyright 2011 Gaslamp Games.
+  Used with permission from Nicholas Vining for this
+  research paper. Redistribution and further use is prohibited.
+
+  Sportscar by Morgan McGuire 2020, in the Public Domain
+
+arabic.png Copyright "Sharm" 2013, CC-BY 3.0
+https://opengameart.org/content/lpc-arabic-elements
+
+btg.png Copyright 2019 Stephan Steinbach, CC-BY 4.0
+cropped screenshot of "Beat the Gobblins"
+
+spritesheet.png:
+  Top row 8x8 PICO-8 sprites by Morgan McGuire 2020
+  Released into the Public Domain.
+
+  Green Ninja by DezrasDragons in the Public Domain
+  https://opengameart.org/content/ninja-animated
+
+  Large Red Imp Copyright 2012, Redshrike and William Thompson
+  CC-BY 3.0
+  https://opengameart.org/content/lpc-imp
+
+  Gold and gray UI elements Copyright 2013 Buch. CC-BY-SA 3.0
+  https://opengameart.org/content/golden-ui-bigger-than-ever-edition
+
+  8x8 roguelike sprites
+  By Morgan McGuire and Kenney.nl 2020 in the Public Domain
+
+  16x16 dungeon sprites
+  Dragon De Platino & DawnBringer, 2014. CC-BY 4.0 license
+  https://opengameart.org/content/dawnlike-16x16-universal-rogue-like-tileset-v181
+
+
+gaslamp-* images are from Dungeons of Dredmor, Copyright 2011 Gaslamp
+Games.  Used with permission from Nicholas Vining for this
+research paper. Redistribution and further use is prohibited.
