@@ -7,13 +7,16 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
 
+set(SDL_SHARED OFF CACHE BOOL "" FORCE)
+set(SDL_STATIC ON CACHE BOOL "" FORCE)
+
 # Add SDL source as a subproject (this builds SDL3::SDL3)
 add_subdirectory(thirdparty/SDL EXCLUDE_FROM_ALL)
 
 # Your executable – list ONLY your own source files
 add_executable(mmpx
         main.cpp
-        Enlarger.cpp
+        palette.h
         # add any other .cpp files you wrote (not thirdparty)
 )
 
