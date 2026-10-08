@@ -1,0 +1,28 @@
+{
+ "timestamp": "2026-10-08 18:48:22",
+ "comparisons": [
+{
+     "scale_mode": "bilinear",
+         "metrics": {
+         "palette": 0.125,
+         "transparency": 1,
+         "diagonals": 0,
+         "intersections": 0.333333,
+         "thickness": 0,
+         "corners": 4.21437,
+         "average": 0.94545
+  }
+}
+,
+{
+     "scale_mode": "nearest",
+         "metrics": {
+         "palette": inf,
+         "transparency": 1,
+         "diagonals": 0,
+         "intersections": 0.333333,
+         "thickness": 0,
+         "corners": 4.21437,
+         "average": inf
+  }
+}

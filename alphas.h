@@ -1,21 +1,12 @@
 #include<vector>
 #include <cmath>
 #include "func.h"
+#include "global.h"
 
 ///WSPOLCZYNNIK PIKSELI NIEPRZEZROCZYSTYCH
 
-std::vector<float> original_alphas;
-std::vector<float> new_alphas;
-
-
-
-// min max
-
-
 float count_alphas(Image original_image,Image scaled_image) {
     float rate = 1;
-    //original_alphas = getImagePalette(original_image);
-    //new_alphas = getImagePalette(scaled_image);
     for (int i=0;i<original_palette.size();i++) {
         original_alphas.push_back(original_palette[i].a);
     }

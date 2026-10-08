@@ -17,6 +17,7 @@ add_subdirectory(thirdparty/SDL EXCLUDE_FROM_ALL)
 add_executable(mmpx
         main.cpp
         palette.h
+        global.h
         # add any other .cpp files you wrote (not thirdparty)
 )
 

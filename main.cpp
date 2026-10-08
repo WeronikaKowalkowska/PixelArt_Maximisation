@@ -1,8 +1,13 @@
 #include <iostream>
+#include <fstream>
+#include <chrono>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
+
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_surface.h>
-#include <SDL3/SDL_pixels.h>
 
 #include "func.h"
 #include "palette.h"
@@ -10,31 +15,75 @@
 #include "diagonals.h"
 #include "intersections.h"
 #include "thickness.h"
-#include"corners.h"
+#include "corners.h"
+#include "global.h"
 
-SDL_Color getPixelColor(SDL_Surface* surface, int x, int y) {
-    Uint8 r, g, b,a;
-    bool success = SDL_ReadSurfacePixel(surface, x, y, &r, &g, &b, &a);
-    if (success) {
-        SDL_Color c;
-        c.r = r;
-        c.g = g;
-        c.b = b;
-        c.a = a;
+std::ofstream logFile;
+std::ofstream outputFile;
 
-        return c;
+bool init_window() {
+    window = SDL_CreateWindow(
+        "Quality Assesment",
+        1920,
+        1080,
+        SDL_WINDOW_OPENGL
+    );
+    if (window == NULL) {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create window: %s\n", SDL_GetError());
+        return false;
     }
-    else {
-        std::cout<<( "Could not get pixel color \n" );
-        return SDL_Color();
+
+    return true;
+}
+
+void render() {
+    while (!window_done) {
+        SDL_Event event;
+
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_EVENT_QUIT) {
+                window_done = true;
+            }
+        }
+        SDL_BlitSurface( surface_before_scaling, NULL, surface_resized, NULL );
+        SDL_UpdateWindowSurface( window );
     }
 }
 
-bool validate_color (SDL_Color c) {
-    if (c.r < 0 || c.r > 255 || c.g < 0 || c.g > 255 ||c.b < 0 || c.b > 255) {
-        return true;
-    }
-        return false;
+MetricsResult calculate_metrics(Image& i1, Image& i2) {
+    res.palette = check_palette(i1, i2);
+    res.alpha = count_alphas(i1, i2);
+    res.diagonals = count_diagonals_rate(i1, i2, 2);
+    res.intersections = count_intersections_rate(i1, i2, 2);
+    res.thickness = count_thickness_rate(i1, i2, 2);
+    res.corners = count_corner_quality_rate(i1, i2);
+    res.average = (res.palette + res.alpha + res.diagonals + res.intersections + res.thickness + res.corners) / 6.0f;
+    return res;
+}
+
+std::string get_current_timestamp() {
+    auto now = std::chrono::system_clock::now();
+    std::time_t in_time_t = std::chrono::system_clock::to_time_t(now);
+
+    std::stringstream ss;
+    ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %H:%M:%S");
+    return ss.str();
+}
+
+void write_output(std::string scale_mode, MetricsResult& res, bool first) {
+    if (!first) { outputFile << ",\n"; }
+    outputFile << "{\n";
+    outputFile << "     \"scale_mode\": \"" << scale_mode << "\",\n";
+    outputFile << "         \"metrics\": {\n";
+    outputFile << "         \"palette\": " << res.palette << ",\n";
+    outputFile << "         \"transparency\": " << res.alpha << ",\n";
+    outputFile << "         \"diagonals\": " << res.diagonals << ",\n";
+    outputFile << "         \"intersections\": " << res.intersections << ",\n";
+    outputFile << "         \"thickness\": " << res.thickness << ",\n";
+    outputFile << "         \"corners\": " << res.corners << ",\n";
+    outputFile << "         \"average\": " << res.average << "\n";
+    outputFile << "  }\n";
+    outputFile << "}\n";
 }
 
 Image surface_to_image(SDL_Surface *surf) {
@@ -44,7 +93,6 @@ Image surface_to_image(SDL_Surface *surf) {
 
     std::vector<Pixel> img_pixels;
 
-    //get pixels
     SDL_LockSurface(surf);
 
     for(int x=0; x<img.width; x++) {
@@ -52,7 +100,7 @@ Image surface_to_image(SDL_Surface *surf) {
             const SDL_Color c = getPixelColor(surf, x, y);
             if (!validate_color(c)) {
             }
-            //operatur + automatycznie konwertuje Uint8 (char) na int
+            //operator + automatycznie konwertuje Uint8 (char) na int
             const color p_color = {+c.r,+c.g,+c.b};
             Pixel p = {x,y,p_color};
             img_pixels.push_back(p);
@@ -61,199 +109,82 @@ Image surface_to_image(SDL_Surface *surf) {
     img.pixels = img_pixels;
 
     SDL_UnlockSurface(surf);
-    //SDL_FreeSurface(surf);
 
     return img;
 }
 
 
-//The surface contained by the window
-SDL_Surface* gScreenSurface = NULL;
+void setup_surface(SDL_ScaleMode scale_mode) {
+    surface_resized = SDL_ScaleSurface(
+        surface_before_scaling,
+        surface_before_scaling->w * 2,
+        surface_before_scaling->h * 2,
+        scale_mode
+    );
 
-//The image we will load and show on the screen
-SDL_Surface* gHelloWorld = NULL;
+    Image img_bilinear = surface_to_image(surface_resized);
+    logFile << scale_mode << " After scaling: w: " << img_bilinear.width << std::endl;
+    logFile << scale_mode << " After scaling: h: " << img_bilinear.height << std::endl;
+    logFile << scale_mode << " Pixels: " << img_bilinear.pixels.size() << std::endl;
 
-// /SDL_SCALEMODE_PIXELART
+}
+
+void setup_palette_and_lines() {
+    original_palette = getImagePalette(img_before_scaling);
+    new_palette = getImagePalette(img_resized);
+
+    count_diagonal_lines(img_before_scaling, original_lines);
+    count_diagonal_lines(img_resized, scaled_lines);
+}
 
 int main(int argc, char* argv[]) {
 
-    SDL_Window *window;                    // Declare a pointer
-    bool done = false;
+    SDL_Init(SDL_INIT_VIDEO);
 
-    SDL_Init(SDL_INIT_VIDEO);              // Initialize SDL3
+    logFile.open("../../log.json");
+    outputFile.open("../../output.json");
 
-    // Create an application window with the following settings:
-    window = SDL_CreateWindow(
-        "An SDL3 window",                  // window title
-        1920,                               // width, in pixels
-        1080,                               // height, in pixels
-        SDL_WINDOW_OPENGL                  // flags - see below
-    );
+    outputFile << "{\n"; outputFile << " \"timestamp\": \"" << get_current_timestamp() << "\",\n"; outputFile << " \"comparisons\": [\n";
 
-    // Check that the window was successfully created
-    if (window == NULL) {
-        // In the case that the window could not be made...
-        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create window: %s\n", SDL_GetError());
+    surface_before_scaling = SDL_LoadPNG( "../../Enlarger.png" );
+    if( surface_before_scaling == NULL )
+    {
+        logFile << "Unable to load image! SDL Error: " << SDL_GetError() << "\n";
+        window_done = false;
         return 1;
     }
-    else {
-        gScreenSurface = SDL_GetWindowSurface( window );
-    }
 
-    gHelloWorld = SDL_LoadPNG( "/home/mochi/Documents/inzynierka/project/Enlarger.png" );
-    if( gHelloWorld == NULL )
-    {
-        std::cout<<( "Unable to load image %s! SDL Error: %s\n", "02_getting_an_image_on_the_screen/hello_world.bmp", SDL_GetError() );
-        done = false;
-    }
+    img_before_scaling = surface_to_image(surface_before_scaling);
 
-    Image i1 = surface_to_image(gHelloWorld);
-    // std::cout<<("Before scaling: w: ", i1.width)<<std::endl;
-    // std::cout<<("Before scaling: h: ", i1.height)<<std::endl;
-    // std::cout<<("Pixels: ", i1.pixels.size())<<std::endl;
+    logFile << "Before scaling: w: " << img_before_scaling.width << std::endl;
+    logFile << "Before scaling: h: " << img_before_scaling.height << std::endl;
+    logFile << "Pixels: " << img_before_scaling.pixels.size() << std::endl;
 
-//     bool nearest = SDL_BlitSurfaceScaled(
-//     gHelloWorld, NULL,
-//     gScreenSurface, NULL,
-//     SDL_SCALEMODE_NEAREST
-// );
-    // if (nearest) {
-    //     //std::cout<<( "Nearest image scaled\n" );
-    // }
-    // else {
-    //     SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not scale image %s\n", SDL_GetError());
-    // }
-    gScreenSurface = SDL_ScaleSurface(
-        // gHelloWorld,       // The source image surface
-        // NULL,         // Rectangle defining the source area (or NULL for full)
-        // gScreenSurface,       // The destination surface (e.g., window)
-        // NULL,         // Rectangle defining the target size/position
-        // SDL_SCALEMODE_LINEAR // Enables bilinear interpolation
-        gHelloWorld,
-        gHelloWorld->w * 2,
-        gHelloWorld->h * 2,
-        SDL_SCALEMODE_LINEAR
-    );
-    // if (gScreenSurface) {
-    //     //std::cout<<( "Bilinear image scaled\n" );
-    // }
-    // else {
-    //     SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not scale image %s\n", SDL_GetError());
-    // }
+    setup_surface(SDL_SCALEMODE_LINEAR);
 
-    Image i2 = surface_to_image(gScreenSurface);
-    // std::cout << "Before scaling: w: " << i1.width << std::endl;
-    // std::cout << "Before scaling: h: " << i1.height << std::endl;
-    // std::cout << "Pixels: " << i1.pixels.size() << std::endl;
+    img_resized = surface_to_image(surface_resized);
 
-    original_palette = getImagePalette(i1);
-    new_palette = getImagePalette(i2);
+    setup_palette_and_lines();
 
-    //Image img = surface_to_image(gScreenSurface);
+    res = calculate_metrics(img_before_scaling, img_resized);
+    write_output("bilinear", res,true);
 
-    std::cout<<"BILINEAR\n";
+    setup_surface(SDL_SCALEMODE_NEAREST);
 
-    //Wypisanie z wymuszeniem wyczyszczenia bufora (std::endl lub std::flush):
-    std::cout << "Kryterium palety: " << std::flush;
-    float r1= check_palette(i1,i2);
-    std::cout<<r1;
+    img_resized = surface_to_image(surface_resized);
 
-    std::cout<<"Kryterium przezroczystosci: "<<std::endl;
-    float r2 = count_alphas(i1,i2);
-    std::cout<<r2<<"\n";
+    setup_palette_and_lines();
 
-    std::cout<< "Kryterium zachowania wygladzenia lini krzywych i ukosnych\n";
-    float r3 = count_diagonals_rate(i1,i2,2);
-    std::cout<<r3<<"\n";
+    res = calculate_metrics(img_before_scaling, img_resized);
+    write_output("nearest", res,false);
 
-    std::cout<<"Kryterium liczby przeciec\n";
-    float r4 = count_intersections_rate(i1,i2,2);
-    std::cout<<r4<<"\n";
+    logFile.close();
+    outputFile.close();
 
-    std::cout<<"Kryterium zachowania grubosci linii\n";
-    float r5 = count_thickness_rate(i1,i2,2);
-    std::cout<<r5<<"\n";
-
-    std::cout<<"Kryterium zachowania naroznikow\n";
-    float r6 = count_corner_quality_rate(i1,i2);
-    std::cout<<r6<<"\n";
-
-    std::cout<<"Srednia\n";
-    float r7 = (r1+r2+r3+r4+r5+r6)/6.0f;
-    std::cout<<r7<<"\n";
-
-    std::cout<<std::endl<<std::endl;
-
-    gScreenSurface = SDL_ScaleSurface(
-    // gHelloWorld,       // The source image surface
-    // NULL,         // Rectangle defining the source area (or NULL for full)
-    // gScreenSurface,       // The destination surface (e.g., window)
-    // NULL,         // Rectangle defining the target size/position
-    // SDL_SCALEMODE_LINEAR // Enables bilinear interpolation
-    gHelloWorld,
-    gHelloWorld->w * 2,
-    gHelloWorld->h * 2,
-    SDL_SCALEMODE_NEAREST
-);
-
-std::cout<<"NEAREST\n";
-    i2 = surface_to_image(gScreenSurface);
-    new_palette = getImagePalette(i2);
-    std::cout << "Kryterium palety: " << std::flush;
-     r1= check_palette(i1,i2);
-    std::cout<<r1;
-
-    std::cout<<"Kryterium przezroczystosci: "<<std::endl;
-     r2 = count_alphas(i1,i2);
-    std::cout<<r2<<"\n";
-
-    std::cout<< "Kryterium zachowania wygladzenia lini krzywych i ukosnych\n";
-     r3 = count_diagonals_rate(i1,i2,2);
-    std::cout<<r3<<"\n";
-
-    std::cout<<"Kryterium liczby przeciec\n";
-     r4 = count_intersections_rate(i1,i2,2);
-    std::cout<<r4<<"\n";
-
-    std::cout<<"Kryterium zachowania grubosci linii\n";
-     r5 = count_thickness_rate(i1,i2,2);
-    std::cout<<r5<<"\n";
-
-    std::cout<<"Kryterium zachowania naroznikow\n";
-     r6 = count_corner_quality_rate(i1,i2);
-    std::cout<<r6<<"\n";
-
-    std::cout<<"Srednia\n";
-     r7 = (r1+r2+r3+r4+r5+r6)/6.0f;
-    std::cout<<r7<<"\n";
-
-
-
-    // while (!done) {
-    //     SDL_Event event;
-    //
-    //     while (SDL_PollEvent(&event)) {
-    //         if (event.type == SDL_EVENT_QUIT) {
-    //             done = true;
-    //         }
-    //     }
-    //     //Apply the image
-    //     SDL_BlitSurface( gHelloWorld, NULL, gScreenSurface, NULL );
-    //     // Do game logic, present a frame, etc.
-    //
-    //     //Update the surface
-    //     SDL_UpdateWindowSurface( window );
-    // }
-
-    //Deallocate surface
-    //SDL_FreeSurface( gHelloWorld );
-    //gHelloWorld = NULL;
-
-    // Close and destroy the window
     SDL_DestroyWindow(window);
 
     window = NULL;
-    // Clean up
+
     SDL_Quit();
     return 0;
 }

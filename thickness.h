@@ -1,19 +1,10 @@
 #include <math.h>
 
 #include "func.h"
+#include "global.h"
 #include <vector>
-//#include <bits/valarray_after.h>
 
 //wyszukaj kropki jako pojedyńcze pixele
-
-struct Dot {
-    int x;
-    int y;
-    color c;
-    int size_x;
-    int size_y;
-};
-
 
 
 void find_dots_original(Image img,std::vector<Dot> dots) {
@@ -25,7 +16,7 @@ void find_dots_original(Image img,std::vector<Dot> dots) {
             bool is_dot = true;
             for (int i = 0;i<3;i++) {
                 for (int j = 0;j<3;j++) {
-                    if (i==1&&j==1)continue;
+                    if (i==1&&j==1) continue;
                     else if (matrix[i][j].c==p.c)is_dot = false;
                 }
 
@@ -89,14 +80,12 @@ float count_thickness_rate(Image original, Image scaled, int img_scales) {
     for (int i=0;i<original_lines.size();i++) {
         if (original_lines[i].thickness_x[i]*img_scales!=scaled_lines[i].thickness_x[i]) {mistakes++;}
     }
-//     if (mistakes==0) {return 1;}
 rate= rate/mistakes;
 
     std::vector<Dot> original_dots;
     std::vector<Dot> scaled_dots;
     find_dots_original(original, original_dots);
     find_dots_scaled(scaled, scaled_dots,img_scales);
-    //return abs(1-original_dots.size()/scaled_dots.size());
     rate = rate/(original_dots.size()/scaled_dots.size());
     return rate;
  }
