@@ -4,6 +4,16 @@ Pixels: 8192
 1 After scaling: w: 256
 1 After scaling: h: 128
 1 Pixels: 32768
+original corners: 32312
+scaled corners: 171848
+expected corners: 129248
+diff: 0.329599
+rate: 0.670401
 0 After scaling: w: 256
 0 After scaling: h: 128
 0 Pixels: 32768
+original corners: 32312
+scaled corners: 136163
+expected corners: 129248
+diff: 0.0535018
+rate: 0.946498

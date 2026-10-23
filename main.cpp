@@ -56,7 +56,7 @@ MetricsResult calculate_metrics(Image& i1, Image& i2) {
     res.diagonals = count_diagonals_rate(i1, i2, 2);
     res.intersections = count_intersections_rate(i1, i2, 2);
     res.thickness = count_thickness_rate(i1, i2, 2);
-    res.corners = count_corner_quality_rate(i1, i2);
+    res.corners = count_corner_quality_rate(i1, i2, 2);
     res.average = (res.palette + res.alpha + res.diagonals + res.intersections + res.thickness + res.corners) / 6.0f;
     return res;
 }
@@ -115,8 +115,12 @@ Image surface_to_image(SDL_Surface *surf) {
 
 
 void setup_surface(SDL_ScaleMode scale_mode) {
+    if (surface_resized != NULL) {
+        SDL_DestroySurface(surface_resized);
+    }
+
     surface_resized = SDL_ScaleSurface(
-        surface_before_scaling,
+        SDL_ConvertSurface(surface_before_scaling, SDL_PIXELFORMAT_RGBA32), //zapewnia zeby nie ignorowac flagi linear
         surface_before_scaling->w * 2,
         surface_before_scaling->h * 2,
         scale_mode
@@ -130,6 +134,13 @@ void setup_surface(SDL_ScaleMode scale_mode) {
 }
 
 void setup_palette_and_lines() {
+    original_lines.clear();
+    scaled_lines.clear();
+    original_palette.clear();
+    new_palette.clear();
+    p_rate = 1;
+    p_difference = 0;
+
     original_palette = getImagePalette(img_before_scaling);
     new_palette = getImagePalette(img_resized);
 
@@ -166,6 +177,8 @@ int main(int argc, char* argv[]) {
 
     setup_palette_and_lines();
 
+    SDL_SavePNG(surface_resized,"bilinear.png" );
+
     res = calculate_metrics(img_before_scaling, img_resized);
     write_output("bilinear", res,true);
 
@@ -174,6 +187,8 @@ int main(int argc, char* argv[]) {
     img_resized = surface_to_image(surface_resized);
 
     setup_palette_and_lines();
+
+    SDL_SavePNG(surface_resized, "nearest.png");
 
     res = calculate_metrics(img_before_scaling, img_resized);
     write_output("nearest", res,false);

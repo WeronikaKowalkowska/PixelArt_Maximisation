@@ -1,28 +1,28 @@
 {
- "timestamp": "2026-10-08 18:48:22",
+ "timestamp": "2026-10-23 10:59:32",
  "comparisons": [
 {
      "scale_mode": "bilinear",
          "metrics": {
-         "palette": 0.125,
+         "palette": 0.115942,
          "transparency": 1,
-         "diagonals": 0,
+         "diagonals": 0.364157,
          "intersections": 0.333333,
-         "thickness": 0,
-         "corners": 4.21437,
-         "average": 0.94545
+         "thickness": 0.0159194,
+         "corners": 0.670401,
+         "average": 0.416626
   }
 }
 ,
 {
      "scale_mode": "nearest",
          "metrics": {
-         "palette": inf,
+         "palette": 0.125,
          "transparency": 1,
-         "diagonals": 0,
+         "diagonals": 0.292274,
          "intersections": 0.333333,
-         "thickness": 0,
-         "corners": 4.21437,
-         "average": inf
+         "thickness": 0.0409905,
+         "corners": 0.946498,
+         "average": 0.456349
   }
 }

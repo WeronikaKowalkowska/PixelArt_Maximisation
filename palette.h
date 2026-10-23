@@ -1,11 +1,14 @@
 #include <iostream>
 #include <vector>
 #include "func.h"
+#include <algorithm>
 
 ///     WSPÓŁCZYNNIK ZGODNOŚCI PALETY KOLORYSTYCZNEJ
 
 //obie palety są sortowane rosnąco według r, g i b
 float check_same_size(std::vector<color> original_palette, std::vector<color> new_palette) {
+    std::sort(original_palette.begin(), original_palette.end());
+    std::sort(new_palette.begin(), new_palette.end());
     if (new_palette.size()==original_palette.size()) {
         for (int i=0; i<new_palette.size(); i++) {
             //sprawdź zawartość nowej palety i oblicz różnicę

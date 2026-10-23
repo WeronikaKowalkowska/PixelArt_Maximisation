@@ -81,8 +81,8 @@ bool validate_color (SDL_Color c) {
     return false;
 }
 
+//all calls are unreachable
 static Line count_line(Image &img, Pixel p1, Pixel p2, float dirs[3][2], std::vector<std::vector<bool> > &visited) {
-    //int n = 0;
     int len = 2;
     Line l;
     l.startX = p1.x;

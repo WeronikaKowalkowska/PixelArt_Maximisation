@@ -59,14 +59,26 @@ int count_concave(Image img) {
     return count;
 }
 
-float count_corner_quality_rate(Image original, Image scaled) {
+float count_corner_quality_rate(Image original, Image scaled,int scale) {
     int original_concave = count_concave(original);
     int scaled_concave = count_concave(scaled);
-    float concave_rate = (original_concave != 0) ? (float)scaled_concave / original_concave : 1.0f;
     int original_convex = count_convex(original);
     int scaled_convex = count_convex(scaled);
-    float convex_rate = (original_convex != 0) ? (float)scaled_convex / original_convex : 1.0f;
-    return (concave_rate+convex_rate)/2.0f;
+
+    int original_corners = original_concave+original_convex;
+    logFile<<"original corners: "<<original_corners<<std::endl;
+    int scaled_corners = scaled_concave+scaled_convex;
+    logFile<<"scaled corners: "<<scaled_corners<<std::endl;
+    if (original_corners == 0) return (scaled_corners == 0) ? 1.0f : 0.0f;
+
+    int expected_corners = original_corners*scale*scale;
+    logFile<<"expected corners: "<<expected_corners<<std::endl;
+    //blad wzgledny
+    float diff = std::abs(expected_corners - (float)scaled_corners) / expected_corners;
+    logFile<<"diff: "<<diff<<std::endl;
+    float rate = 1.0f - diff ;
+    logFile<<"rate: "<<rate<<std::endl;
+    return std::max(0.0f, std::min(1.0f, rate));
 }
 
 

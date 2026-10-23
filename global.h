@@ -14,6 +14,11 @@ struct color {
     bool operator==(const color &other) {
         return r == other.r && g == other.g && b == other.b;
     }
+    bool operator<(const color &other) const {
+        if (r != other.r) return r < other.r;
+        if (g != other.g) return g < other.g;
+        return b < other.b;
+    }
 };
 
 struct Pixel {
