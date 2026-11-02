@@ -18,6 +18,7 @@ add_executable(mmpx
         main.cpp
         palette.h
         global.h
+        mmpx.h
         # add any other .cpp files you wrote (not thirdparty)
 )
 

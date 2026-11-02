@@ -1,16 +1,16 @@
 {
- "timestamp": "2026-10-23 10:59:32",
+ "timestamp": "2026-11-02 18:31:08",
  "comparisons": [
 {
      "scale_mode": "bilinear",
          "metrics": {
          "palette": 0.115942,
          "transparency": 1,
-         "diagonals": 0.364157,
+         "diagonals": 0.444868,
          "intersections": 0.333333,
-         "thickness": 0.0159194,
-         "corners": 0.670401,
-         "average": 0.416626
+         "thickness": 0.0167705,
+         "corners": 0,
+         "average": 0.318486
   }
 }
 ,
@@ -19,10 +19,22 @@
          "metrics": {
          "palette": 0.125,
          "transparency": 1,
-         "diagonals": 0.292274,
+         "diagonals": 0.627447,
          "intersections": 0.333333,
-         "thickness": 0.0409905,
-         "corners": 0.946498,
-         "average": 0.456349
+         "thickness": 0.507906,
+         "corners": 0.392102,
+         "average": 0.497631
+  }
+}
+{
+     "scale_mode": "mmpx",
+         "metrics": {
+         "palette": 0.114661,
+         "transparency": 1,
+         "diagonals": 0.643554,
+         "intersections": 0.333333,
+         "thickness": 0.416866,
+         "corners": 0.364944,
+         "average": 0.478893
   }
 }

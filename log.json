@@ -4,16 +4,21 @@ Pixels: 8192
 1 After scaling: w: 256
 1 After scaling: h: 128
 1 Pixels: 32768
-original corners: 32312
-scaled corners: 171848
-expected corners: 129248
-diff: 0.329599
-rate: 0.670401
+original corners: 3406
+scaled corners: 32660
+expected corners: 13624
+diff: 1.39724
+rate: -0.39724
 0 After scaling: w: 256
 0 After scaling: h: 128
 0 Pixels: 32768
-original corners: 32312
-scaled corners: 136163
-expected corners: 129248
-diff: 0.0535018
-rate: 0.946498
+original corners: 3406
+scaled corners: 5342
+expected corners: 13624
+diff: 0.607898
+rate: 0.392102
+original corners: 3406
+scaled corners: 22276
+expected corners: 13624
+diff: 0.635056
+rate: 0.364944

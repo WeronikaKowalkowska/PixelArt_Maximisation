@@ -17,6 +17,7 @@
 #include "thickness.h"
 #include "corners.h"
 #include "global.h"
+#include "mmpx.h"
 
 std::ofstream logFile;
 std::ofstream outputFile;
@@ -51,7 +52,7 @@ void render() {
 }
 
 MetricsResult calculate_metrics(Image& i1, Image& i2) {
-    res.palette = check_palette(i1, i2);
+    res.palette = check_palette(i1, i2, 2);
     res.alpha = count_alphas(i1, i2);
     res.diagonals = count_diagonals_rate(i1, i2, 2);
     res.intersections = count_intersections_rate(i1, i2, 2);
@@ -91,22 +92,18 @@ Image surface_to_image(SDL_Surface *surf) {
     img.width = surf->w;
     img.height = surf->h;
 
-    std::vector<Pixel> img_pixels;
+    img.pixels.resize(img.width * img.height); //zapewnienie rozmiaru na korzystanie z mmpx
 
     SDL_LockSurface(surf);
 
-    for(int x=0; x<img.width; x++) {
-        for(int y=0; y<img.height; y++) {
+    for(int y = 0; y < img.height; y++) {
+        for(int x = 0; x < img.width; x++) {
             const SDL_Color c = getPixelColor(surf, x, y);
-            if (!validate_color(c)) {
-            }
-            //operator + automatycznie konwertuje Uint8 (char) na int
-            const color p_color = {+c.r,+c.g,+c.b};
-            Pixel p = {x,y,p_color};
-            img_pixels.push_back(p);
+            const color p_color = {+c.r, +c.g, +c.b, (float)c.a};
+            Pixel p = {x, y, p_color};
+            img.pixels[y * img.width + x] = p;
         }
     }
-    img.pixels = img_pixels;
 
     SDL_UnlockSurface(surf);
 
@@ -192,6 +189,16 @@ int main(int argc, char* argv[]) {
 
     res = calculate_metrics(img_before_scaling, img_resized);
     write_output("nearest", res,false);
+
+    mmpx_surface = scale_mmpx(2,mmpx_img);
+    img_resized = mmpx_img;
+    setup_palette_and_lines();
+
+    SDL_SavePNG(mmpx_surface,"mmpx.png" );
+
+    res = calculate_metrics(img_before_scaling, img_resized);
+    write_output("mmpx", res,true);
+
 
     logFile.close();
     outputFile.close();

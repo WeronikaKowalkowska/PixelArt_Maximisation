@@ -5,6 +5,8 @@
 #ifndef MMPX_GLOBAL_H
 #define MMPX_GLOBAL_H
 
+#include <iosfwd>
+
 #include "func.h"
 
 struct color {
@@ -12,13 +14,16 @@ struct color {
     float a;
 
     bool operator==(const color &other) {
-        return r == other.r && g == other.g && b == other.b;
+        return r == other.r && g == other.g && b == other.b&&a==other.a;
     }
+
     bool operator<(const color &other) const {
         if (r != other.r) return r < other.r;
         if (g != other.g) return g < other.g;
         return b < other.b;
     }
+
+    bool operator==(const color & other) const = default;
 };
 
 struct Pixel {
@@ -29,6 +34,8 @@ struct Pixel {
     bool operator==(const Pixel &other) {
         return x == other.x && y == other.y&&c==other.c;
     }
+
+    bool operator==(long i) const;
 };
 
 struct Image {
@@ -75,12 +82,14 @@ extern std::ofstream outputFile;
 
 SDL_Surface* surface_before_scaling = NULL;
 SDL_Surface* surface_resized = NULL;
+SDL_Surface* mmpx_surface = NULL;
 
 bool window_done = false;
 SDL_Window *window;
 
 Image img_before_scaling;
 Image img_resized;
+Image mmpx_img;
 
 std::vector<color> original_palette;
 std::vector<color> new_palette;
