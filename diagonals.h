@@ -17,8 +17,8 @@ float count_diagonals_rate(Image original, Image scaled, int img_scales) {
     float total_orig_pixels = 0, total_scaled_pixels = 0;
 
     //zliczam piksele w liniach
-    for(const auto& l : original_lines) total_orig_pixels += l.pixels;
-    for(const auto& l : scaled_lines) total_scaled_pixels += l.pixels;
+    for(const auto& l : original_lines) total_orig_pixels += l.pixels.size();
+    for(const auto& l : scaled_lines) total_scaled_pixels += l.pixels.size();
 
     float expected_pixels = total_orig_pixels * img_scales; //tyle pikseli w liniach oczekuje od skalowanego
     float pixel_score =  std::abs(expected_pixels - total_scaled_pixels) / expected_pixels; //wylicz stopien bledu na podstawie srednich dlugosci

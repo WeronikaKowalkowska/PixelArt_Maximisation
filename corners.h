@@ -34,12 +34,19 @@ int count_convex(Image img) {
             get_matrix(matrix, img, x, y);
             color c = matrix[1][1].c;
             for (int i =0;i<4;i++) {
-                if (matchMask(img, matrix[1][1], convexMasks[i], c)==1) count++;
+                if (matchMask(img, matrix[1][1], convexMasks[i], c)==1) {
+                    count++;
+                    ///debug only
+                    if (img == img_before_scaling) convex_original.push_back(img.pixels[y*img.width+(x)]);
+                    else convex_scaled.push_back(img.pixels[y*img.width+(x)]);
+                }
             }
         }
     }
     return count;
 }
+
+
 
 //wklęsłe
 int count_concave(Image img) {
@@ -52,7 +59,12 @@ int count_concave(Image img) {
 
             color c = matrix[1][1].c;
             for (int i =0;i<4;i++) {
-                if (matchMask(img, matrix[1][1], concaveMasks[i], c)==1) count++;
+                if (matchMask(img, matrix[1][1], concaveMasks[i], c)==1) {
+                    count++;
+                    ///debug only
+                    if (img == img_before_scaling) concave_original.push_back(img.pixels[y*img.width+(x)]);
+                    else concave_scaled.push_back(img.pixels[y*img.width+(x)]);
+                }
             }
         }
     }
@@ -66,18 +78,18 @@ float count_corner_quality_rate(Image original, Image scaled,int scale) {
     int scaled_convex = count_convex(scaled);
 
     int original_corners = original_concave+original_convex;
-    logFile<<"original corners: "<<original_corners<<std::endl;
+    //logFile<<"original corners: "<<original_corners<<std::endl;
     int scaled_corners = scaled_concave+scaled_convex;
-    logFile<<"scaled corners: "<<scaled_corners<<std::endl;
+    //logFile<<"scaled corners: "<<scaled_corners<<std::endl;
     if (original_corners == 0) return (scaled_corners == 0) ? 1.0f : 0.0f;
 
     int expected_corners = original_corners*scale*scale;
-    logFile<<"expected corners: "<<expected_corners<<std::endl;
+    //logFile<<"expected corners: "<<expected_corners<<std::endl;
     //blad wzgledny
     float diff = std::abs(expected_corners - (float)scaled_corners) / expected_corners;
-    logFile<<"diff: "<<diff<<std::endl;
+    //logFile<<"diff: "<<diff<<std::endl;
     float rate = 1.0f - diff ;
-    logFile<<"rate: "<<rate<<std::endl;
+    //logFile<<"rate: "<<rate<<std::endl;
     return std::max(0.0f, std::min(1.0f, rate));
 }
 

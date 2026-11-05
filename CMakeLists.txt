@@ -19,6 +19,7 @@ add_executable(mmpx
         palette.h
         global.h
         mmpx.h
+        "debug_overlay .h"
         # add any other .cpp files you wrote (not thirdparty)
 )
 

@@ -1,24 +1,12 @@
-Before scaling: w: 128
-Before scaling: h: 64
-Pixels: 8192
-1 After scaling: w: 256
-1 After scaling: h: 128
-1 Pixels: 32768
-original corners: 3406
-scaled corners: 32660
-expected corners: 13624
-diff: 1.39724
-rate: -0.39724
-0 After scaling: w: 256
-0 After scaling: h: 128
-0 Pixels: 32768
-original corners: 3406
-scaled corners: 5342
-expected corners: 13624
-diff: 0.607898
-rate: 0.392102
-original corners: 3406
-scaled corners: 22276
-expected corners: 13624
-diff: 0.635056
-rate: 0.364944
+1
+ORIGINAL down: 127 up: 127 intersections: 1
+SCLAED down: 255 up: 255 intersections: 1
+rate_up: 0 rate_down: 0 intersections: 1
+0
+ORIGINAL down: 127 up: 127 intersections: 1
+SCLAED down: 255 up: 255 intersections: 1
+rate_up: 0 rate_down: 0 intersections: 1
+MMPX
+ORIGINAL down: 127 up: 127 intersections: 1
+SCLAED down: 255 up: 255 intersections: 1
+rate_up: 0 rate_down: 0 intersections: 1

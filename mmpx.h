@@ -35,32 +35,7 @@ inline bool none_eq4(const color& B, const color& A0, const color& A1, const col
     return B!=A0 && B!=A1&&B!=A2&&B!=A3;
 }
 
-SDL_Surface* image_to_surface(Image &img) {
-    SDL_Surface* surface = SDL_CreateSurface(img.width, img.height, SDL_PIXELFORMAT_ABGR8888);
-    if (!surface) {
-        SDL_Log("Błąd tworzenia powierzchni SDL: %s", SDL_GetError());
-        return nullptr;
-    }
 
-    Uint32* dst_pixels = (Uint32*)surface->pixels; //wskaznik do bufora pixeli sdl_surface, uint32 bo pixel w strukturze sdl jest tego typu
-    int pitch_pixels = surface->pitch / 4; // szerokosc wiersza w bajtach - dzielimy przez 4, bo Uint32 ma 4 bajty
-
-    for (int y = 0; y < img.height; ++y) {
-        for (int x = 0; x < img.width; ++x) {
-            int idx = y * img.width + x;
-            if (idx >= img.pixels.size()) continue;
-            const Pixel& p = img.pixels[idx];
-            //przetwarzanmie struktury color na format ktory mozna zapakowac do sdl_surafce
-            Uint32 packed_color = ((Uint32)(unsigned char)p.c.a << 24) |
-                                  ((Uint32)(unsigned char)p.c.b << 16) |
-                                  ((Uint32)(unsigned char)p.c.g << 8)  |
-                                  (Uint32)(unsigned char)p.c.r;
-            dst_pixels[y * pitch_pixels + x] = packed_color;
-        }
-    }
-
-    return surface;
-}
 
 
 

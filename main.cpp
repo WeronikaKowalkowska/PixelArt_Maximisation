@@ -16,6 +16,7 @@
 #include "intersections.h"
 #include "thickness.h"
 #include "corners.h"
+#include "debug_overlay .h"
 #include "global.h"
 #include "mmpx.h"
 
@@ -112,6 +113,7 @@ Image surface_to_image(SDL_Surface *surf) {
 
 
 void setup_surface(SDL_ScaleMode scale_mode) {
+    logFile<<scale_mode<<"\n";
     if (surface_resized != NULL) {
         SDL_DestroySurface(surface_resized);
     }
@@ -124,9 +126,9 @@ void setup_surface(SDL_ScaleMode scale_mode) {
     );
 
     Image img_bilinear = surface_to_image(surface_resized);
-    logFile << scale_mode << " After scaling: w: " << img_bilinear.width << std::endl;
-    logFile << scale_mode << " After scaling: h: " << img_bilinear.height << std::endl;
-    logFile << scale_mode << " Pixels: " << img_bilinear.pixels.size() << std::endl;
+    //logFile << scale_mode << " After scaling: w: " << img_bilinear.width << std::endl;
+    //logFile << scale_mode << " After scaling: h: " << img_bilinear.height << std::endl;
+    //logFile << scale_mode << " Pixels: " << img_bilinear.pixels.size() << std::endl;
 
 }
 
@@ -164,38 +166,36 @@ int main(int argc, char* argv[]) {
 
     img_before_scaling = surface_to_image(surface_before_scaling);
 
-    logFile << "Before scaling: w: " << img_before_scaling.width << std::endl;
-    logFile << "Before scaling: h: " << img_before_scaling.height << std::endl;
-    logFile << "Pixels: " << img_before_scaling.pixels.size() << std::endl;
+    //logFile << "Before scaling: w: " << img_before_scaling.width << std::endl;
+    //logFile << "Before scaling: h: " << img_before_scaling.height << std::endl;
+    //logFile << "Pixels: " << img_before_scaling.pixels.size() << std::endl;
 
     setup_surface(SDL_SCALEMODE_LINEAR);
-
     img_resized = surface_to_image(surface_resized);
-
     setup_palette_and_lines();
-
-    SDL_SavePNG(surface_resized,"bilinear.png" );
-
+    //SDL_SavePNG(surface_resized,"bilinear.png" );
     res = calculate_metrics(img_before_scaling, img_resized);
     write_output("bilinear", res,true);
 
+    debug_lines(img_before_scaling, original_lines,"lines_original.png");
+    debug_lines(img_resized, scaled_lines,"lines_resized.png");
+    debug_corners(img_before_scaling, convex_original, concave_original, "corners_original.png");
+    debug_corners(img_resized, convex_scaled, concave_scaled, "corners_resized.png");
+    debug_intersections(img_before_scaling, intersections_original, "intersections_original.png");
+    debug_intersections(img_resized, intersections_scaled, "intersections_scaled.png");
+
     setup_surface(SDL_SCALEMODE_NEAREST);
-
     img_resized = surface_to_image(surface_resized);
-
     setup_palette_and_lines();
-
-    SDL_SavePNG(surface_resized, "nearest.png");
-
+    //SDL_SavePNG(surface_resized, "nearest.png");
     res = calculate_metrics(img_before_scaling, img_resized);
     write_output("nearest", res,false);
 
+    logFile<<"MMPX\n";
     mmpx_surface = scale_mmpx(2,mmpx_img);
     img_resized = mmpx_img;
     setup_palette_and_lines();
-
-    SDL_SavePNG(mmpx_surface,"mmpx.png" );
-
+    //SDL_SavePNG(mmpx_surface,"mmpx.png" );
     res = calculate_metrics(img_before_scaling, img_resized);
     write_output("mmpx", res,true);
 

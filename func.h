@@ -69,7 +69,7 @@ SDL_Color getPixelColor(SDL_Surface* surface, int x, int y) {
         return c;
     }
     else {
-        logFile<< "Could not get pixel color"<<std::endl;
+        //logFile<< "Could not get pixel color"<<std::endl;
         return SDL_Color();
     }
 }
@@ -81,121 +81,117 @@ bool validate_color (SDL_Color c) {
     return false;
 }
 
+//zapobieganie zbieraniu pixeli z tla
+inline bool is_edge_pixel(const Image &img, int x, int y) {
+    color c = img.pixels[y * img.width + x].c;
+    int neighbors[4][2] = { {1,0}, {-1,0}, {0,1}, {0,-1} };
+
+    for (int i = 0; i < 4; i++) {
+        int nx = x + neighbors[i][0];
+        int ny = y + neighbors[i][1];
+        if (nx >= 0 && nx < img.width && ny >= 0 && ny < img.height) {
+            if (!(img.pixels[ny * img.width + nx].c == c)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+
 //all calls are unreachable
-static Line count_line(Image &img, Pixel p1, Pixel p2, float dirs[3][2], std::vector<std::vector<bool> > &visited) {
-    int len = 2;
+static Line count_line(Image &img, Pixel p1, int dir_x, int dir_y, std::vector<std::vector<bool> > &visited) {
+    //int len = 2;
     Line l;
     l.startX = p1.x;
     l.startY = p1.y;
-    if (p1.x < 0 || p1.x >= img.width || p1.y < 0 || p1.y >= img.height||p2.x < 0 || p2.x >= img.width || p2.y < 0 || p2.y >= img.height) {
-        return l;
-    }
-    while (p1.c == p2.c) {
-        l.pixels++;
-        visited[p1.x][p1.y] = true;
-        visited[p2.x][p2.y] = true;
+    l.c = p1.c;
 
-        //sprawdz grubosc na lewo
-        int left = 1;
-        int l_thickness = 0;
-        while (p2.x - left >= 0 && p2.c == img.pixels[p2.y * img.width + p2.x - left].c) {
-            visited[p2.x - left][p2.y] = true;
-            left++;
-            l_thickness++;
-        }
-        //sprawdz grubosc na prawo
-        int right = 1;
-        int r_thickness = 0;
-        while (p2.x + right < img.width&&p2.c == img.pixels[p2.y * img.width + p2.x + right].c) {
-            visited[p2.x + right][p2.y] = true;
-            right++;
-            r_thickness++;
-        }
-        //dodawanie grubosci do wektora
-        l.thickness_x.push_back(1+l_thickness+r_thickness);
 
-        //szukaj kolejnego piksela lini
-        bool has_next = false;
+    Pixel curr = p1;
+    while (true) {
+        l.pixels.push_back(curr);
+        visited[curr.x][curr.y] = true;
 
-        for (int i = 0; i < 3; i++) {
-            int next_x = p2.x+dirs[i][0];
-            int next_y = p2.y+dirs[i][1];
-            if (next_x>=0&&next_x<img.width&&next_y>=0&&next_y<img.height) {
-                Pixel next_p = img.pixels[next_y * img.width + next_x];
-                next_p.x = next_x;
-                next_p.y = next_y;
-                if (next_p.c == p2.c&& !visited[next_x][next_y]) {
-                    p1=p2;
-                    p2=next_p;
-                    has_next = true;
-                    break;
-                }
+        int next_x = curr.x + dir_x;
+        int next_y = curr.y + dir_y;
+
+        if (next_x >= 0 && next_x < img.width && next_y >= 0 && next_y < img.height) {
+            Pixel next_p = img.pixels[next_y * img.width + next_x];
+            next_p.x = next_x;
+            next_p.y = next_y;
+
+            if (!visited[next_x][next_y] && (next_p.c == curr.c) && is_edge_pixel(img, next_x, next_y)) {
+                curr = next_p;
+                continue;
             }
         }
 
-        if (has_next) {
-            l.endX = p2.x;
-            l.endY = p2.y;
-            //oblicz przesuniecie lini
-            int dx = abs(l.endX - l.startX);
-            int dy = abs(l.endY - l.startY);
-            l.stairs = std::gcd(dx, dy);
-
-        }
-
-        else {
-            return l;
-        }
-
-
+        l.endX = curr.x;
+        l.endY = curr.y;
+        break;
     }
+    int dx = abs(l.endX - l.startX);
+    int dy = abs(l.endY - l.startY);
+    l.stairs = std::gcd(dx, dy);
                 return l;
             }
 
 //oblicz ilosc schodkow w zaleznosci od pozycji poczatkowej i koncowej
 static void count_diagonal_lines(Image img, std::vector<Line> &lines)
 {
-    std::vector<std::vector<bool> > visitedDown(
-        img.width,
-        std::vector<bool>(img.height, false));
 
-    std::vector<std::vector<bool> > visitedUp(
-        img.width,
-        std::vector<bool>(img.height, false));
+    lines.clear();
+
+    std::vector<std::vector<bool>> visitedDownRight(img.width, std::vector<bool>(img.height, false));
+    std::vector<std::vector<bool>> visitedDownLeft(img.width, std::vector<bool>(img.height, false));
+    std::vector<std::vector<bool>> visitedHorizontal(img.width, std::vector<bool>(img.height, false));
+    std::vector<std::vector<bool>> visitedVertical(img.width, std::vector<bool>(img.height, false));
 
 
-    for (int x = 1; x < img.width; x++) {
-        for (int y = 1; y < img.height; y++) {
+    for (int y = 0; y < img.height; y++) {
+        for (int x = 0; x < img.width; x++) {
             Pixel p = img.pixels[y * img.width + x];
 
             p.x = x;
             p.y = y;
 
-            color c = p.c;
-            //dla każdego piksela sprawdź czy jest początkiem
-            if (!visitedDown[x][y]) {
-                for (int i = 0; i < 3; i++) {
-                    if (is_start(img, p, directions_down[i][0], directions_down[i][1])) {
-                        Line l = count_line(
-                            img, p,
-                            img.pixels[(y + directions_down[i][1]) * img.width + (x + directions_down[i][0])],
-                            directions_down,
-                            visitedDown);
-                        lines.push_back(l);
-                    }
+            // ignorowanie tla
+            if (!is_edge_pixel(img, x, y)) continue;
+
+            //dol prawo 1,1
+            if (!visitedDownRight[x][y]) {
+                Line l = count_line(img, p, 1, 1, visitedDownRight);
+                if (l.pixels.size() >= MIN_LINE_LENGTH) {
+                    lines.push_back(l);
                 }
             }
-            if (!visitedUp[x][y]) {
-                for (int i = 0; i < 3; i++) {
-                    if (is_start(img, p, directions_up[i][0], directions_up[i][1])) {
-                        Line l = count_line(
-                            img, p, img.pixels[(y + directions_up[i][1]) * img.width + (x + directions_up[i][0])],
-                            directions_up,
-                            visitedUp);
-                        lines.push_back(l);
-                    }
+
+            // dol lewo -1,1
+            if (!visitedDownLeft[x][y]) {
+                Line l = count_line(img, p, -1, 1, visitedDownLeft);
+                if (l.pixels.size() >= MIN_LINE_LENGTH) {
+                    lines.push_back(l);
                 }
             }
+
+            // prawo 1,0
+            if (!visitedHorizontal[x][y]) {
+                Line l = count_line(img, p, 1, 0, visitedHorizontal);
+                if (l.pixels.size() >= MIN_LINE_LENGTH) {
+                    lines.push_back(l);
+                }
+            }
+
+            // dol, 0,1
+            if (!visitedVertical[x][y]) {
+                Line l = count_line(img, p, 0, 1, visitedVertical);
+                if (l.pixels.size() >= MIN_LINE_LENGTH) {
+                    lines.push_back(l);
+                }
+            }
+
+
         }
     }
 }
