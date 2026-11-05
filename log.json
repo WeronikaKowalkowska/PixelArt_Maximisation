@@ -1,12 +1,12 @@
 1
-ORIGINAL down: 127 up: 127 intersections: 1
-SCLAED down: 255 up: 255 intersections: 1
-rate_up: 0 rate_down: 0 intersections: 1
+ORIGINAL down: 172 up: 0 intersections: 2550
+SCLAED down: 271 up: 0 intersections: 12610
+rate_up: 0 rate_down: 1 intersections: 0
 0
-ORIGINAL down: 127 up: 127 intersections: 1
-SCLAED down: 255 up: 255 intersections: 1
-rate_up: 0 rate_down: 0 intersections: 1
+ORIGINAL down: 172 up: 0 intersections: 2550
+SCLAED down: 284 up: 0 intersections: 7674
+rate_up: 0 rate_down: 1 intersections: 0.495294
 MMPX
-ORIGINAL down: 127 up: 127 intersections: 1
-SCLAED down: 255 up: 255 intersections: 1
-rate_up: 0 rate_down: 0 intersections: 1
+ORIGINAL down: 172 up: 0 intersections: 2550
+SCLAED down: 273 up: 0 intersections: 6937
+rate_up: 0 rate_down: 1 intersections: 0.639804
