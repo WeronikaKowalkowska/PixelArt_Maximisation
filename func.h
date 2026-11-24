@@ -24,6 +24,16 @@ inline void get_matrix(Pixel matrix[3][3], Image img, int x, int y) {
     matrix[2][2] = img.pixels[(y + 1) * img.width + x + 1];
 }
 
+inline void get_scaled_matrix(Pixel matrix[6][6], Image img, int x, int y) {
+    for (int dx = 0; dx < 4; dx++) {
+        for (int dy = 0; dy < 4; dy++)
+        {
+            if (y + dy >= img.height || x + dx >= img.width) continue;
+            matrix[dy][dx] = img.pixels[(y + dy) * img.width + (x + dx)];
+        }
+    }
+}
+
 bool check_same_color(color c1, color c2) {
     if (c1.r == c2.r &&
     c1.g == c2.g &&

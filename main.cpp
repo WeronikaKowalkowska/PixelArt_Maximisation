@@ -137,6 +137,10 @@ void setup_palette_and_lines() {
     scaled_lines.clear();
     original_palette.clear();
     new_palette.clear();
+    concave_original.clear();
+    convex_original.clear();
+    concave_scaled.clear();
+    convex_scaled.clear();
     p_rate = 1;
     p_difference = 0;
 

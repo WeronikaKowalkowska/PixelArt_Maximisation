@@ -68,15 +68,15 @@ Image_lines count_intersections(Image img) {
     //mamy liczbe lini w dol i w gore i ich czesc wspolna. jak policzyc ile jesli lini w dol i w gore bez czesci wspolnej
     int down_count = linesDown.size();
     int up_count = linesUp.size();
-    logFile<<"down: "<<down_count<<" up: "<<up_count<<" intersections: "<<intersections_count<<std::endl;
+    //logFile<<"down: "<<down_count<<" up: "<<up_count<<" intersections: "<<intersections_count<<std::endl;
     return Image_lines(up_count,down_count, intersections_count);
 
 }
 
 float count_intersections_rate(Image original, Image scaled, int scale) {
-    logFile<<"ORIGINAL ";
+   // logFile<<"ORIGINAL ";
     Image_lines original_lines = count_intersections(original);
-    logFile<<"SCLAED ";
+    //logFile<<"SCLAED ";
     Image_lines scaled_lines = count_intersections(scaled);
     float rate_down = (scaled_lines.down > 0) ? std::min(1.0f, (float)scaled_lines.down / std::max(1.0f,(float)original_lines.down)) : 0.0f;
     float rate_up = (scaled_lines.up > 0) ? std::min(1.0f, (float)scaled_lines.up / std::max(1.0f, (float)original_lines.up)) : 0.0f;
@@ -88,6 +88,6 @@ float count_intersections_rate(Image original, Image scaled, int scale) {
         std::cout <<"made 0.5\n";
         rate_intersections = 0.5f;
     }
-    logFile<<"rate_up: "<<rate_up<<" rate_down: "<<rate_down<<" intersections: "<<rate_intersections<<std::endl;
+    //logFile<<"rate_up: "<<rate_up<<" rate_down: "<<rate_down<<" intersections: "<<rate_intersections<<std::endl;
     return (rate_up + rate_down + rate_intersections) / 3.0f;
 }
