@@ -1,5 +1,5 @@
 {
- "timestamp": "2026-11-23 12:45:58",
+ "timestamp": "2026-11-24 08:40:41",
  "comparisons": [
 {
      "scale_mode": "bilinear",
@@ -9,8 +9,8 @@
          "diagonals": 0.600458,
          "intersections": 0.333333,
          "thickness": 0.0151229,
-         "corners": 0.502132,
-         "average": 0.427831
+         "corners": 0.863539,
+         "average": 0.488066
   }
 }
 ,
@@ -22,8 +22,8 @@
          "diagonals": 0.526827,
          "intersections": 0.498431,
          "thickness": 0.192817,
-         "corners": 0.0511727,
-         "average": 0.544875
+         "corners": 0.897655,
+         "average": 0.685955
   }
 }
 {
@@ -34,7 +34,7 @@
          "diagonals": 0.724683,
          "intersections": 0.546601,
          "thickness": 0.200378,
-         "corners": 0.38806,
-         "average": 0.629501
+         "corners": 0.75693,
+         "average": 0.69098
   }
 }

@@ -34,12 +34,16 @@ int matchMask(Image& img, Pixel p, const int mask[3][3], color c)
     else{ return 0;}
 }
 
-int scaled_matchMask(Image img, Pixel p, int startX, int startY, const int mask[6][6], color c) {
+int scaled_matchMask(Image img, Pixel p, int startX, int startY, const int mask[6][6]) {
     bool match = true;
+    color c;
+    bool has_color = false;
     for(int dy=-0; dy<6; dy++)
     {
         for(int dx=0; dx<6; dx++)
         {
+
+
             // +1 -> przesuniecie na indeksy tablicy [0,2]
             //if (mask[dx][dy]==-1) continue;
 
@@ -50,13 +54,24 @@ int scaled_matchMask(Image img, Pixel p, int startX, int startY, const int mask[
             int m_val = mask[dy][dx]; // [y][x], bez +1!
             if (m_val == -1) continue;
 
+            // if (match && m_val ==1) c = img.pixels[(startY+dy) * img.width + startX+dx].c;
+
             int nx = startX + dx;
             int ny = startY + dy;
             if (nx < 0 || nx >= img.width || ny < 0 || ny >= img.height) return 0;
 
-            bool same = (img.pixels[ny * img.width + nx].c == c);
-            if (m_val == 1 && !same) return 0; // musi być ten sam kolor
-            if (m_val == 0 && same)  return 0; // musi być inny kolor
+            color px_c = img.pixels[ny * img.width + nx].c;
+            if (!has_color && m_val == 1) {
+                c = px_c;
+                has_color = true;
+            }
+            if (has_color) {
+                bool same = (px_c == c);
+                if (m_val == 1 && !same) return 0; // musi być ten sam kolor
+                if (m_val == 0 && same)  return 0; // musi być inny kolor
+            }
+
+
         }
     }
     if (match) return 1;
@@ -92,9 +107,11 @@ int count_scaled_convex(Image img) {
          {
             Pixel matrix[6][6];
             get_scaled_matrix(matrix, img, x, y);
-            color c = img.pixels[(y + 2) * img.width + (x + 2)].c;
+            // color c = img.pixels[(y + 2) * img.width + (x + 2)].c;
+            //color c;
+
             for (int i =0;i<4;i++) {
-                if (scaled_matchMask(img, matrix[0][0],x,y, scaled_convexMasks[i], c)==1) {
+                if (scaled_matchMask(img, matrix[0][0],x,y, scaled_convexMasks[i])==1) {
                     count++;
                     ///debug only
                     if (img == img_before_scaling) convex_original.push_back(img.pixels[y*img.width+(x)]);
@@ -138,9 +155,9 @@ int count_scaled_concave(Image img) {
         {
             Pixel matrix[6][6];
             get_scaled_matrix(matrix, img, x, y);
-            color c = img.pixels[(y + 2) * img.width + (x + 2)].c;
+            //color c = img.pixels[(y + 2) * img.width + (x + 2)].c;
             for (int i =0;i<4;i++) {
-                if (scaled_matchMask(img, matrix[0][0],x,y, scaled_concaveMasks[i], c)==1) {
+                if (scaled_matchMask(img, matrix[0][0],x,y, scaled_concaveMasks[i])==1) {
                     count++;
                     ///debug only
                     if (img == img_before_scaling) convex_original.push_back(img.pixels[y*img.width+(x)]);
