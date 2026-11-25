@@ -108,6 +108,9 @@ std::vector<float> new_alphas;
 std::vector<Line> original_lines;
 std::vector<Line> scaled_lines;
 
+std::vector<Dot> original_dots;
+std::vector<Dot> scaled_dots;
+
 
 ///debug only
 

@@ -64,48 +64,47 @@ for (int x=0;x<img.width;x++) {
 }
 }
 
-float count_thickness_rate(Image original, Image scaled, int img_scales) {
-    if (original_lines.empty()) return 0.0f;
-    float rate =1;
-    int mistakes=0;
-
-    //sprawdz czy ilosc lini sie zgadza
-
-    int total_thickness_checks = 0;
-    int correct_thickness_checks = 0;
-
-    for (const auto& l : original_lines) {
-        // oblicz wspolrzedne punktu startowego po skalowaniu
-        int scaled_x = l.startX * img_scales;
-        int scaled_y = l.startY * img_scales;
-
-        if (scaled_x >= scaled.width || scaled_y >= scaled.height) continue;
-
-        color line_color = img_before_scaling.pixels[l.startY * img_before_scaling.width + l.startX].c;
-
-        int l_thick = 0, r_thick = 0;
-
-        //zmierz grubosc na lewo i na prawo
-        while (scaled_x - l_thick >= 0 &&
-               scaled.pixels[scaled_y * scaled.width + (scaled_x - l_thick)].c == line_color) {
-            l_thick++;
-               }
-        while (scaled_x + r_thick < scaled.width &&
-               scaled.pixels[scaled_y * scaled.width + (scaled_x + r_thick)].c == line_color) {
-            r_thick++;
-               }
-
-        int measured_scaled_thickness = l_thick + r_thick - 1;
-        int expected_thickness = (l.thickness_x.empty() ? 1 : l.thickness_x[0]) * img_scales;
-
-        total_thickness_checks++;
-        // margines bledu 1 piksel dla wygladzania bilinearnego
-        if (std::abs(measured_scaled_thickness - expected_thickness) <= 1) {
-            correct_thickness_checks++;
+void count_line_thickness(Image img,std::vector<Line> &lines) {
+    for (auto& l : lines) {
+        int i = 0;
+        l.thickness_x.clear();
+        for ( auto& p : l.pixels ) {
+            //l.thickness_x.push_back(1);
+            int left =-1;
+            int right =1;
+            while (p.x + left >= 0&&img.pixels[p.y*img.width + p.x+left].c == p.c) {
+                left--;
+            }
+            while (p.x + right < img.width&&img.pixels[p.y*img.width + p.x+right].c == p.c) {
+                right++;
+            }
+            //l.thickness_x[i] = abs(left)+right;
+            l.thickness_x.push_back(abs(left)+right);
+            i++;
         }
     }
+    }
 
-    return (total_thickness_checks > 0) ? (float)correct_thickness_checks / total_thickness_checks : 0.0f;
+
+float count_thickness_rate(Image original, Image scaled, int img_scales) {
+
+    count_line_thickness(original, original_lines);
+    count_line_thickness(scaled, scaled_lines);
+
+
+
+
+    //float ratio = (float)scaled_lines.size() / (float)(original_lines.size());
+    float total_orig_pixels = 0, total_scaled_pixels = 0;
+
+    //zliczam piksele w liniach
+    for(const auto& l : original_lines) for (int i =0;i< l.thickness_x.size();i++) total_orig_pixels += l.thickness_x[i];
+    for(const auto& l : scaled_lines) for (int i =0;i< l.thickness_x.size();i++) total_scaled_pixels += l.thickness_x[i];
+
+    float expected_pixels = total_orig_pixels * img_scales; //tyle pikseli w liniach oczekuje od skalowanego
+    float pixel_score =  std::abs(expected_pixels - total_scaled_pixels) / expected_pixels; //wylicz stopien bledu na podstawie srednich dlugosci
+
+    return std::exp(-pixel_score);
 
 
  }
