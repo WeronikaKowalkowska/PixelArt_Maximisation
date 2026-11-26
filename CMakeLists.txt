@@ -3,25 +3,35 @@ project(mmpx)
 
 set(CMAKE_CXX_STANDARD 23)
 
-# Output directories (optional)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
 
 set(SDL_SHARED OFF CACHE BOOL "" FORCE)
 set(SDL_STATIC ON CACHE BOOL "" FORCE)
 
-# Add SDL source as a subproject (this builds SDL3::SDL3)
 add_subdirectory(thirdparty/SDL EXCLUDE_FROM_ALL)
 
-# Your executable – list ONLY your own source files
-add_executable(mmpx
-        main.cpp
-        palette.h
-        global.h
-        mmpx.h
-        "debug_overlay .h"
-        # add any other .cpp files you wrote (not thirdparty)
+set(IMGUI_DIR thirdparty/imgui-1.93.0)
+
+add_library(imgui STATIC
+        ${IMGUI_DIR}/imgui.cpp
+        ${IMGUI_DIR}/imgui_demo.cpp
+        ${IMGUI_DIR}/imgui_draw.cpp
+        ${IMGUI_DIR}/imgui_tables.cpp
+        ${IMGUI_DIR}/imgui_widgets.cpp
+        ${IMGUI_DIR}/backends/imgui_impl_sdl3.cpp
+        ${IMGUI_DIR}/backends/imgui_impl_sdlrenderer3.cpp
 )
 
-# Link to the SDL3 library built from the subdirectory
-target_link_libraries(mmpx PRIVATE SDL3::SDL3)
+target_include_directories(imgui PUBLIC
+        ${IMGUI_DIR}
+        ${IMGUI_DIR}/backends
+)
+
+target_link_libraries(imgui PUBLIC SDL3::SDL3)
+
+add_executable(mmpx
+        main.cpp
+)
+
+target_link_libraries(mmpx PRIVATE SDL3::SDL3 imgui)

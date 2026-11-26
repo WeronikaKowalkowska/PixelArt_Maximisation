@@ -9,6 +9,9 @@
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_surface.h>
 
+#include "thirdparty/imgui-1.93.0/imgui.h"
+//#include "thirdparty/imgui-1.93.0/imgui_impl_sdl3.h"
+
 #include "func.h"
 #include "palette.h"
 #include "alphas.h"
@@ -18,37 +21,125 @@
 #include "corners.h"
 #include "debug_overlay .h"
 #include "global.h"
+#include "imgui_impl_sdl3.h"
+#include "imgui_impl_sdlrenderer3.h"
 #include "mmpx.h"
 
 std::ofstream logFile;
 std::ofstream outputFile;
+SDL_Renderer* renderer = nullptr;
 
 bool init_window() {
-    window = SDL_CreateWindow(
-        "Quality Assesment",
-        1920,
-        1080,
-        SDL_WINDOW_OPENGL
-    );
-    if (window == NULL) {
-        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create window: %s\n", SDL_GetError());
+    float main_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
+    if (main_scale <= 0.0f) main_scale = 1.0f;
+    SDL_WindowFlags window_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
+    if (!SDL_CreateWindowAndRenderer("QualityAssesment", (int)(1280 * main_scale), (int)(800 * main_scale), window_flags, &window, &renderer)) {
+        printf("Error: SDL_CreateWindowAndRenderer(): %s\n", SDL_GetError());
         return false;
     }
+    SDL_SetRenderVSync(renderer, 1);
+    SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    SDL_ShowWindow(window);
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    // Setup Dear ImGui style
+    ImGuiStyle& style = ImGui::GetStyle();
+    ImGui::StyleColorsDark();
+    //ImGui::StyleColorsLight();
+    //style.FontSizeBase = 16.0f;           // Default to 13.0f when unspecified, which allows crisp legacy font for non-4K screens.
+    style.FrameRounding = 3.0f;
+    style.GrabRounding = 3.0f;
+
+    // Setup scaling
+    style.ScaleAllSizes(main_scale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
+    style.FontScaleDpi = main_scale;        // Set initial font scale. (in docking branch: using io.ConfigDpiScaleFonts=true automatically overrides this for every window depending on the current monitor)
+
+
+    ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
+    ImGui_ImplSDLRenderer3_Init(renderer);
+
 
     return true;
 }
 
 void render() {
+    float clear_color[4] = { 0.45f, 0.55f, 0.60f, 1.00f };
+
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+
     while (!window_done) {
         SDL_Event event;
 
         while (SDL_PollEvent(&event)) {
+            ImGui_ImplSDL3_ProcessEvent(&event); // Przekazanie zdarzeń myszy/klawiatury do ImGui
             if (event.type == SDL_EVENT_QUIT) {
                 window_done = true;
             }
+            if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID(window)) {
+                window_done = true;
+            }
         }
-        SDL_BlitSurface( surface_before_scaling, NULL, surface_resized, NULL );
-        SDL_UpdateWindowSurface( window );
+        ImGui_ImplSDLRenderer3_NewFrame();
+        ImGui_ImplSDL3_NewFrame();
+        ImGui::NewFrame();
+        bool show = true;
+        ImGui::ShowDemoWindow(&show);
+        {
+            static float f = 0.0f;
+            static int counter = 0;
+
+            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+
+            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+            ImGui::Checkbox("Demo Window", &show);      // Edit bools storing our window open/close state
+            ImGui::Checkbox("Another Window", &show);
+
+            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+
+            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+                counter++;
+            ImGui::SameLine();
+            ImGui::Text("counter = %d", counter);
+
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+            ImGui::End();
+        }
+
+        // 3. Show another simple window.
+        if (show)
+        {
+            ImGui::Begin("Another Window", &show);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+            ImGui::Text("Hello from another window!");
+            if (ImGui::Button("Close Me"))
+                show = false;
+            ImGui::End();
+        }
+
+        // Rendering
+        ImGui::Render();
+        SDL_SetRenderDrawColorFloat(renderer, clear_color[0], clear_color[1], clear_color[2], clear_color[3]);
+        SDL_RenderClear(renderer);
+        ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);
+        SDL_RenderPresent(renderer);
+    }
+}
+
+void close_window() {
+    ImGui_ImplSDLRenderer3_Shutdown();
+    ImGui_ImplSDL3_Shutdown();
+    ImGui::DestroyContext();
+    if (renderer) {
+        SDL_DestroyRenderer(renderer);
+        renderer = nullptr;
+    }
+    if (window) {
+        SDL_DestroyWindow(window);
+        window = nullptr;
     }
 }
 
@@ -126,10 +217,6 @@ void setup_surface(SDL_ScaleMode scale_mode) {
     );
 
     Image img_bilinear = surface_to_image(surface_resized);
-    //logFile << scale_mode << " After scaling: w: " << img_bilinear.width << std::endl;
-    //logFile << scale_mode << " After scaling: h: " << img_bilinear.height << std::endl;
-    //logFile << scale_mode << " Pixels: " << img_bilinear.pixels.size() << std::endl;
-
 }
 
 void setup_palette_and_lines() {
@@ -170,14 +257,9 @@ int main(int argc, char* argv[]) {
 
     img_before_scaling = surface_to_image(surface_before_scaling);
 
-    //logFile << "Before scaling: w: " << img_before_scaling.width << std::endl;
-    //logFile << "Before scaling: h: " << img_before_scaling.height << std::endl;
-    //logFile << "Pixels: " << img_before_scaling.pixels.size() << std::endl;
-
     setup_surface(SDL_SCALEMODE_LINEAR);
     img_resized = surface_to_image(surface_resized);
     setup_palette_and_lines();
-    //SDL_SavePNG(surface_resized,"bilinear.png" );
     res = calculate_metrics(img_before_scaling, img_resized);
     write_output("bilinear", res,true);
 
@@ -191,7 +273,6 @@ int main(int argc, char* argv[]) {
     setup_surface(SDL_SCALEMODE_NEAREST);
     img_resized = surface_to_image(surface_resized);
     setup_palette_and_lines();
-    //SDL_SavePNG(surface_resized, "nearest.png");
     res = calculate_metrics(img_before_scaling, img_resized);
     write_output("nearest", res,false);
 
@@ -199,13 +280,16 @@ int main(int argc, char* argv[]) {
     mmpx_surface = scale_mmpx(2,mmpx_img);
     img_resized = mmpx_img;
     setup_palette_and_lines();
-    //SDL_SavePNG(mmpx_surface,"mmpx.png" );
     res = calculate_metrics(img_before_scaling, img_resized);
     write_output("mmpx", res,true);
 
 
     logFile.close();
     outputFile.close();
+
+    init_window();
+    render();
+    close_window();
 
     SDL_DestroyWindow(window);
 
